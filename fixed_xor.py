@@ -44,22 +44,24 @@ def lev_dist(s1, s2):
     return d[l1, l2]
 
 
-def freq_score(bs):
+def freq_score(bs, non_letter_penalty=50, non_print_penalty=9950):
     etaoin = 'ETAOINSHRDLCUMWFGYPBVKJXQZ'
     scores = {c: ii for ii, c in enumerate(etaoin)}
-    letters = str(bs).upper()
+    letters = bs.decode(errors='replace').upper()
 
     score = 0
     for c in letters:
-        score = score + scores.get(c, 26)
+        score = score + scores.get(c, non_letter_penalty)
+        if c not in string.printable:
+            score = score + non_print_penalty
 
     return score
 
 
 def break_single_byte_xor(bs):
     key_scores = [(key, freq_score(fixed_xor(bs, key))) for key in range(256)]
-    top_key = sorted(key_scores, key=lambda x: x[1])[0][0]
-    return top_key, fixed_xor(bs, top_key)
+    top_keys = sorted(key_scores, key=lambda x: x[1])
+    return top_keys[0][0], fixed_xor(bs, top_keys[0][0])
 
 def set1_challenge2():
     bs1 = from_hex('1c0111001f010100061a024b53535009181c')
@@ -70,4 +72,14 @@ def set1_challenge2():
     
 def set1_challenge3():
     cipher = from_hex('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736')
-    return break_single_byte_xor(cipher)
+    key, plain = break_single_byte_xor(cipher)
+    print(plain)
+
+def set1_challenge4():
+    f = open('4.txt', 'r')
+    ciphers = [from_hex(l[:-1]) for l in f]
+    plains = [break_single_byte_xor(c) for c in ciphers]
+    scored = sorted([(freq_score(p), k, p) for k, p in plains], key=lambda x: x[0])
+    score, key, plain = scored[0]
+    print(plain)
+    
