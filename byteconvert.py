@@ -6,7 +6,7 @@ def grouper(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
     return zip_longest(*args, fillvalue=fillvalue)
 
-def to_hex(bs, lower=False):
+def to_hex(bs, lower=True):
     # bytes.hex() should do the same thing
     f = lambda x: x.lower() if lower else x
     return f(''.join('{:02X}'.format(b) for b in bs))
