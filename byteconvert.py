@@ -13,6 +13,10 @@ def to_hex(bs, lower=True):
 
 def from_hex(s):
     # bytes.fromhex() should do the same thing
+
+    good_chars = '01234567890ABCDEFabcdef'
+    s = ''.join(c for c in s if c in good_chars)
+
     if len(s) % 2 == 1:
         s = '0' + s
     return bytes([int(c1 + c2, base=16) for c1, c2 in grouper(s, 2, '0')])
@@ -51,6 +55,8 @@ def from_base64(s, c_62 = '+', c_63 = '/', pad = '='):
                 + string.digits + c_62 + c_63
 
     inv_table = {c: ii for ii, c in enumerate(trans_table)}
+
+    s = ''.join(c for c in s if c in trans_table + pad)
 
     if not pad:
         pad = '='
