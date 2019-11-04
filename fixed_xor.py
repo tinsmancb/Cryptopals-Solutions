@@ -105,19 +105,19 @@ def break_repeating_key_xor(bs, min_key=2, max_key=40):
             
 
 
-def set1_challenge2():
+def challenge2():
     bs1 = from_hex('1c0111001f010100061a024b53535009181c')
     bs2 = from_hex('686974207468652062756c6c277320657965')
     bs_xor = fixed_xor(bs1, bs2)
     print(to_hex(bs_xor))
     assert to_hex(bs_xor) == '746865206b696420646f6e277420706c6179'
     
-def set1_challenge3():
+def challenge3():
     cipher = from_hex('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736')
     key = break_single_byte_xor(cipher)
     print(fixed_xor(cipher, key))
 
-def set1_challenge4():
+def challenge4():
     f = open('4.txt', 'r')
     ciphers = [from_hex(l) for l in f]
     best_score = float('inf')
@@ -131,7 +131,7 @@ def set1_challenge4():
     print(best_plain)
 
 
-def set1_challenge5():
+def challenge5():
     plain = b"Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
     cipher = repeating_key_xor(plain, b'ICE')
     check = '0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f'
@@ -139,7 +139,7 @@ def set1_challenge5():
     assert repeating_key_xor(from_hex(check), b'ICE') == plain
 
 
-def set1_challenge6():
+def challenge6():
     f = open('6.txt', 'r')
     bs = from_base64(f.read())
     key = break_repeating_key_xor(bs)

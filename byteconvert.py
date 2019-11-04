@@ -1,5 +1,6 @@
 import string
 from itertools import zip_longest
+import numpy as np
 
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed_length chunks or blocks"
@@ -19,6 +20,7 @@ def from_hex(s):
 
     if len(s) % 2 == 1:
         s = '0' + s
+
     return bytes([int(c1 + c2, base=16) for c1, c2 in grouper(s, 2, '0')])
 
 def to_base64(bs, c_62 = '+', c_63 = '/', pad = '='):
@@ -78,7 +80,7 @@ def from_base64(s, c_62 = '+', c_63 = '/', pad = '='):
     return bs
         
 
-def set1_challenge1():
+def challenge1():
     s = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
     base64 = 'SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t'
     assert(to_base64(from_hex(s)) == base64)
