@@ -1,4 +1,5 @@
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes, random
 from itertools import islice, product 
 
 from byteconvert import to_hex, from_hex, from_base64 
@@ -60,6 +61,40 @@ def aes_cbc_decrypt(key, iv, cipher_text):
 
     return bytes(plain_text)
 
+def aes_black_box_encrypt(plain_text):
+    key = get_random_bytes(16)
+
+    num_random_bytes = random.randint(5,10)
+    plain_text = get_random_bytes(num_random_bytes) + \
+                 plain_text + \
+                 get_random_bytes(16 - num_random_bytes)
+
+    algo = random.choice(['ECB', 'CBC'])
+    if algo == 'ECB':
+        return algo, aes_ecb_encrypt(key, plain_text)
+    else:
+        iv = get_random_bytes(16)
+        return algo, aes_cbc_encrypt(key, iv, plain_text)
+
+def ecb_score(cipher_text):
+    #score is the number of identical 16 byte blocks.
+    it = iter(cipher_text)
+    num_slices = len(cipher_text) // 16
+    slices = []
+    for jj in range(num_slices):
+        slices.append(bytes(islice(it, 16)))
+
+    score = sum([bs1 == bs2 for bs1, bs2 in product(slices, repeat=2)])
+    score = (score - len(slices))//2
+    return score
+
+def detect_ecb(black_box):
+    plain_text = bytes([0x00] * 64)
+    true, cipher_text = black_box(plain_text)
+    score = ecb_score(cipher_text)
+    guess = 'ECB' if score > 0 else 'CBC'
+    return guess, true
+
 def challenge7():
     f = open('7.txt')
     cipher_text = from_base64(f.read())
@@ -71,15 +106,7 @@ def challenge8():
     best_score = 0
     best_ctext = ''
     for ii, ctext in enumerate(cipher_texts):
-        it = iter(ctext)
-        num_slices = len(ctext) // 16
-        slices = []
-        for jj in range(num_slices):
-            slices.append(bytes(islice(it, 16)))
-
-        score = sum([bs1 == bs2 for bs1, bs2 in product(slices, repeat=2)])
-        score = (score - 10)//2
-
+        score = ecb_score(ctext)
         if score > best_score:
             best_score = score
             best_ctext = ctext
@@ -100,3 +127,9 @@ def challenge10():
     plain_text = aes_cbc_decrypt(key, iv, cipher_text)
     print(plain_text.decode())
     assert aes_cbc_encrypt(key, iv, plain_text) == cipher_text
+
+def challenge11():
+    for ii in range(16):
+        guess, true = detect_ecb(aes_black_box_encrypt)
+        exclaim = 'YAY!' if guess == true else 'BOO!'
+        print('Algorithm predicted {}, actually {}. {}'.format(guess, true, exclaim))
