@@ -1,22 +1,29 @@
-from byteconvert import from_hex, to_hex, from_base64
-import numpy as np
 import string
 from itertools import cycle, islice
 
+import numpy as np
+
+from byteconvert import from_hex, to_hex, from_base64
+
 def fixed_xor(bs1, bs2):
+    "XOR two bytestrings together, or one bytestring by a constant byte."
     if isinstance(bs2, int):
         return bytes([b ^ bs2 for b in bs1])
+    if isinstance(bs1, int):
+        return bytes([bs1 ^ b for b in bs2])
     return bytes([b1 ^ b2 for b1, b2 in zip(bs1, bs2)])
 
 
 def repeating_key_xor(bs, key):
+    "XOR a bytestring by a repeating key."
     return fixed_xor(bs, cycle(key))
 
 
 def lev_dist_naive(s1, s2):
-    if len(s1) == 0:
+    "Calculate the Levenshtein distance between two strings. VERY SLOW"
+    if not s1:
         return len(s2)
-    if len(s2) == 0:
+    if not s2:
         return len(s1)
 
     if s1[-1] == s2[-1]:
@@ -30,6 +37,7 @@ def lev_dist_naive(s1, s2):
 
 
 def lev_dist(s1, s2):
+    "Calculate the Levenshtein distance between two strings."
     l1 = len(s1)
     l2 = len(s2)
 
@@ -51,6 +59,8 @@ def lev_dist(s1, s2):
 
 
 def freq_score(bs, non_letter_penalty=50, non_print_penalty=9950):
+    """Score a bytestring by how likely it is to contain english text.
+    Heavily penalize non-printing characters."""
     etaoin = 'ETAOINSHRDLCUMWFGYPBVKJXQZ'
     scores = {c: ii for ii, c in enumerate(etaoin)}
     scores.update({c: ii for ii, c in enumerate(etaoin.lower())})
@@ -66,15 +76,18 @@ def freq_score(bs, non_letter_penalty=50, non_print_penalty=9950):
     return score
 
 def hamming_dist(bs1, bs2):
+    "Hamming distance (number of differing bits) between two strings."
     diff = fixed_xor(bs1, bs2)
     return sum(['{0:08b}'.format(x).count('1') for x in diff])
 
 def break_single_byte_xor(bs):
+    "Break single byte xor encryption via frequency analysis."
     key_scores = [(key, freq_score(fixed_xor(bs, key))) for key in range(256)]
     top_keys = sorted(key_scores, key=lambda x: x[1])
     return top_keys[0][0]
 
 def break_repeating_key_xor(bs, min_key=2, max_key=40):
+    "Break repeating key xor encryption via frequency analysis."
     keysize_score = 8*len(bs)
     keysize = 0
     for k in range(min_key, max_key+1):
@@ -106,6 +119,7 @@ def break_repeating_key_xor(bs, min_key=2, max_key=40):
 
 
 def challenge2():
+    "Solution to challenge 2."
     bs1 = from_hex('1c0111001f010100061a024b53535009181c')
     bs2 = from_hex('686974207468652062756c6c277320657965')
     bs_xor = fixed_xor(bs1, bs2)
@@ -113,11 +127,13 @@ def challenge2():
     assert to_hex(bs_xor) == '746865206b696420646f6e277420706c6179'
     
 def challenge3():
+    "Solution to challenge 3."
     cipher = from_hex('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736')
     key = break_single_byte_xor(cipher)
     print(fixed_xor(cipher, key))
 
 def challenge4():
+    "Solution to challenge 4."
     f = open('4.txt', 'r')
     ciphers = [from_hex(l) for l in f]
     best_score = float('inf')
@@ -132,6 +148,7 @@ def challenge4():
 
 
 def challenge5():
+    "Solution to challenge 5."
     plain = b"Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
     cipher = repeating_key_xor(plain, b'ICE')
     check = '0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f'
@@ -140,6 +157,7 @@ def challenge5():
 
 
 def challenge6():
+    "Solution to challenge 6."
     f = open('6.txt', 'r')
     bs = from_base64(f.read())
     key = break_repeating_key_xor(bs)

@@ -1,6 +1,5 @@
 import string
 from itertools import zip_longest
-import numpy as np
 
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed_length chunks or blocks"
@@ -8,11 +7,13 @@ def grouper(iterable, n, fillvalue=None):
     return zip_longest(*args, fillvalue=fillvalue)
 
 def to_hex(bs, lower=True):
+    "Convert a bytestring to hex representation."
     # bytes.hex() should do the same thing
     f = lambda x: x.lower() if lower else x
     return f(''.join('{:02X}'.format(b) for b in bs))
 
 def from_hex(s):
+    "Convert hex characters to a bytestring."
     # bytes.fromhex() should do the same thing
 
     good_chars = '01234567890ABCDEFabcdef'
@@ -23,12 +24,13 @@ def from_hex(s):
 
     return bytes([int(c1 + c2, base=16) for c1, c2 in grouper(s, 2, '0')])
 
-def to_base64(bs, c_62 = '+', c_63 = '/', pad = '='):
+def to_base64(bs, c_62='+', c_63='/', pad='='):
+    "Convert a bytestring to a base64 representation."
     # base64.encode() should do the same thing
     trans_table = string.ascii_uppercase \
                 + string.ascii_lowercase \
                 + string.digits + c_62 + c_63
-    
+
     s = ''
     for b1, b2, b3 in grouper(bs, 3, 'x'):
         c1 = trans_table[b1 >> 2]
@@ -50,7 +52,8 @@ def to_base64(bs, c_62 = '+', c_63 = '/', pad = '='):
 
 
 
-def from_base64(s, c_62 = '+', c_63 = '/', pad = '='):
+def from_base64(s, c_62='+', c_63='/', pad='='):
+    "Convert base64 text to bytestring."
     # base64.decode should do the same thing
     trans_table = string.ascii_uppercase \
                 + string.ascii_lowercase \
@@ -81,7 +84,8 @@ def from_base64(s, c_62 = '+', c_63 = '/', pad = '='):
         
 
 def challenge1():
+    "Solution to challenge 1."
     s = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
     base64 = 'SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t'
-    assert(to_base64(from_hex(s)) == base64)
-    assert(s == to_hex(from_base64(base64), lower=True))
+    assert to_base64(from_hex(s)) == base64
+    assert s == to_hex(from_base64(base64), lower=True)
